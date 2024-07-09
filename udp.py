@@ -2,15 +2,16 @@ import sys
 import select
 import signal
 import socket
-import sys
 import time
+from udp import curi_communication_udp, signal_handler
+from functools import partial
 
 class curi_communication_udp:
     name = 'udp'
-    def __init__(self, receiveIP, receivePort, sendIP, sendPort):
-        self.self_IP = receiveIP
-        self.self_Port = receivePort
-        self.target_Address = (sendIP, sendPort)
+    def __init__(self, localIP, localPort, remoteIP, remotePort):
+        self.self_IP = localIP
+        self.self_Port = localPort
+        self.target_Address = (remoteIP, remotePort)
         self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.s.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 1024)
         return
@@ -41,16 +42,15 @@ class curi_communication_udp:
     def set_stop(self):
         self.send("stop")
         
-def signal_handler(sig, frame):
+def signal_handler(udp, sig, frame):
     print('You pressed Ctrl+C!')
-    CS.close()
+    udp.close()
     sys.exit(0)
-
-
+    
 if __name__ == '__main__':
-    signal.signal(signal.SIGINT, signal_handler)
     try:
         CS = curi_communication_udp("172.19.54.129", 10086, "172.19.48.1", 10085)
+        signal.signal(signal.SIGINT,partial(signal_handler, CS))
         CS.open()
         for i in range(10000):
             CS.send("1#2#3#4#5#")

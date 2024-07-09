@@ -5,7 +5,7 @@ If the packet cannot be received on the Window side, check:
 1. ip setting of both hosts are correct.
    * Window: `ipconfig`
    * WSL2: `ifconfig -a`
-3. `ping Google.com` to see if it is connected to internet
+3. `ping` each other's IP to see if they are reachable
 4. Disable Window Firewall of vEthernet(WSL) on public network
    1. Goto **Control Panel > System and Security > Windows Defender Firewall > Advanced settings**.
    2. Under **Windows Defender Firwall with Advanced Security on Local Computer tab**, click **Windows Defender Firewall Properties**.
