@@ -3,7 +3,6 @@ import select
 import signal
 import socket
 import time
-from udp import curi_communication_udp, signal_handler
 from functools import partial
 
 class curi_communication_udp:
