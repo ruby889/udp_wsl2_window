@@ -11,24 +11,27 @@ class curi_communication_udp:
         self.self_IP = localIP
         self.self_Port = localPort
         self.target_Address = (remoteIP, remotePort)
-        self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.s.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 1024)
+        self.rx = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.rx.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 1024)
+        self.tx = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         return
     
     def open(self):
         # self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.s.bind((self.self_IP, self.self_Port))
+        self.rx.bind((self.self_IP, self.self_Port))
+        self.tx.connect(self.target_Address)
         print('open socket')
 
     def close(self):
         print('close socket')
-        self.s.close()
+        self.tx.close()
+        self.rx.close()
 
     def send(self, massage):
-        self.s.sendto(massage.encode("utf-8"), self.target_Address)
+        self.tx.send(massage.encode("utf-8"))
         
     def receive(self, dt = 0.001): # waiting time
-        readable = select.select([self.s], [], [], dt)[0]
+        readable = select.select([self.rx], [], [], dt)[0]
         buf = ""
         if readable:
             for a in readable:
@@ -48,13 +51,13 @@ def signal_handler(udp, sig, frame):
     
 if __name__ == '__main__':
     try:
-        CS = curi_communication_udp("172.19.54.129", 10086, "172.19.48.1", 10085)
+        CS = curi_communication_udp("172.19.54.129", 10085, "172.19.48.1", 10086)
         signal.signal(signal.SIGINT,partial(signal_handler, CS))
         CS.open()
         for i in range(10000):
             CS.send("1#2#3#4#5#")
-            # data = CS.receive()
-            # if data: print(data)
+            data = CS.receive()
+            if data: print(data)
             time.sleep(0.05)
     except Exception as e: 
         print(e)
