@@ -18,4 +18,4 @@ def main(local_ip, local_port):
         sleep(0.5)
 
 if __name__ == "__main__":
-    main("192.168.65.3", 6006)
+    main("10.30.7.78", 6006)

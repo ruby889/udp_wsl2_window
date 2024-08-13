@@ -1,8 +1,9 @@
 import sys
+import time
 import select
 import signal
 import socket
-import time
+import traceback
 from functools import partial
 
 class curi_communication_udp:
@@ -11,8 +12,9 @@ class curi_communication_udp:
         self.self_IP = localIP
         self.self_Port = localPort
         self.target_Address = (remoteIP, remotePort)
+        self.rx_buffer_size = 4096
         self.rx = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.rx.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 1024)
+        self.rx.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, self.rx_buffer_size)
         self.tx = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         return
     
@@ -23,19 +25,23 @@ class curi_communication_udp:
         print('open socket')
 
     def close(self):
-        print('close socket')
         self.tx.close()
         self.rx.close()
+        print('close socket')
 
-    def send(self, massage):
-        self.tx.send(massage.encode("utf-8"))
+    def send(self, message):
+        self.tx.send(message.encode("utf-8"))
         
     def receive(self, dt = 0.001): # waiting time
         readable = select.select([self.rx], [], [], dt)[0]
         buf = ""
-        if readable:
-            for a in readable:
-                buf = a.recvfrom(256)[0].decode("utf-8")
+        try:
+            if readable:
+                for a in readable:
+                    buf = a.recvfrom(self.rx_buffer_size)[0].decode("utf-8")
+        except e:
+            # if isinstance(e, WindowsError) and e.winerror == 10040:
+            traceback.print_exc()
         return buf
 
     def set_start(self):
@@ -51,7 +57,7 @@ def signal_handler(udp, sig, frame):
     
 if __name__ == '__main__':
     try:
-        CS = curi_communication_udp("172.19.54.129", 10085, "172.19.48.1", 10086)
+        CS = curi_communication_udp("10.30.7.78", 10085, "10.30.7.152", 10086)
         signal.signal(signal.SIGINT,partial(signal_handler, CS))
         CS.open()
         for i in range(10000):
